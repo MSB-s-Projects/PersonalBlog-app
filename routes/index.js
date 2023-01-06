@@ -88,6 +88,4 @@ router.get("/posts/:postName", (req, res) => {
   }
 });
 
-
-
 module.exports = router;
