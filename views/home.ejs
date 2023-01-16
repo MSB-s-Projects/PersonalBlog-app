@@ -4,8 +4,8 @@
 <p><%= homePara %> </p>
         
 <%  posts.forEach((post) => { %>
-    <h1><%= post.postTitle %> </h1>
-    <p><%= post.postBody.substring(0,100) + " ..." %> <a href="/posts/<%= _.kebabCase(post.postTitle) %> ">Read More</a></p>
+    <h1><%= post.title %> </h1>
+    <p><%= post.post.substring(0,100) + " ..." %> <a href="/posts/<%= _.kebabCase(post.title) %> ">Read More</a></p>
 <%  }); %>
 
 <%- include("partials/footer") %> 

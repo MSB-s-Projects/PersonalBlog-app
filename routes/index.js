@@ -6,6 +6,11 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 // importing lodash
 const _ = require("lodash");
+const mongoose = require("mongoose");
+require("dotenv").config();
+
+
+
 var router = express.Router();
 
 // creating starting content for html files
@@ -19,17 +24,43 @@ const contactContent =
 // using the bodyParser in urlEncoder mode
 router.use(bodyParser.urlencoded({ extended: true }));
 
+mongoose.set("strictQuery", true);
+mongoose.connect(`mongodb+srv://${process.env.mongoUsername}:${process.env.mongoPass}@cluster0.kbtc9rs.mongodb.net/personalBlogDB`);
+
+const postsSchema = mongoose.Schema({
+  title: String,
+  post: String
+});
+
+const Post = mongoose.model("Post",postsSchema);
+
+const post = new Post({
+  title: "Day1",
+  post: "test"
+})
+
+// post.save();
+
+Post.find({}, (err, allItems) => {
+  posts = allItems;
+})
+
+
+
 // creating a global variable posts
-const posts = [];
+// const posts = [];
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
-  // rendering home.ejs
-  res.render("home", {
-    homePara: homeStartingContent,
-    posts: posts,
-    _: _,
-  });
+  
+  Post.find({}, (err, allItems) => {
+    // rendering home.ejs
+    res.render("home", {
+      homePara: homeStartingContent,
+      posts: allItems,
+      _: _,
+    });
+  })
 });
 
 // get function for "/about" route
@@ -53,39 +84,49 @@ router.get("/compose", (req, res) => {
 // post function for "/compose" route
 router.post("/compose", (req, res) => {
   // creating an object called post
-  const post = {
-    postTitle: req.body.title,
-    postBody: req.body.postB,
-  };
-  // pushing object to global variable
-  posts.push(post);
+  // const post = {
+  //   postTitle: req.body.title,
+  //   postBody: req.body.postB,
+  // };
+  // // pushing object to global variable
+  // posts.push(post);
+
+  const post = new Post({
+    title: req.body.title,
+    post: req.body.postB
+  });
+
+  post.save();
   // redirecting to root route
   res.redirect("/");
 });
 
 // get function for "/post/:postName" route
 router.get("/posts/:postName", (req, res) => {
-  // checking if the article exists
-  let found = false;
 
-  posts.forEach((post) => {
-    if (_.kebabCase(post.postTitle) === req.params.postName) {
-      found = true;
-      // if article found render post.ejs
+  Post.find({}, (err, posts) => {
+    // checking if the article exists
+    let found = false;
+  
+    posts.forEach((post) => {
+      if (_.kebabCase(post.title) === req.params.postName) {
+        found = true;
+        // if article found render post.ejs
+        res.render("post", {
+          title: post.title,
+          content: post.post,
+        });
+      }
+    });
+  
+    // if not found render post.ejs with 404 error page
+    if (!found) {
       res.render("post", {
-        title: post.postTitle,
-        content: post.postBody,
+        title: "404",
+        content: "Error! Requested post not found.",
       });
     }
-  });
-
-  // if not found render post.ejs with 404 error page
-  if (!found) {
-    res.render("post", {
-      title: "404",
-      content: "Error! Requested post not found.",
-    });
-  }
+  })
 });
 
 module.exports = router;
