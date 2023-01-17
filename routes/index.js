@@ -6,9 +6,10 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 // importing lodash
 const _ = require("lodash");
+// importing mongoose
 const mongoose = require("mongoose");
+// impporting and configuring dotenv for environment variables
 require("dotenv").config();
-
 
 
 var router = express.Router();
@@ -24,41 +25,30 @@ const contactContent =
 // using the bodyParser in urlEncoder mode
 router.use(bodyParser.urlencoded({ extended: true }));
 
+// connecting to mongoDB database
 mongoose.set("strictQuery", true);
 mongoose.connect(`mongodb+srv://${process.env.mongoUsername}:${process.env.mongoPass}@cluster0.kbtc9rs.mongodb.net/personalBlogDB`);
 
+// Schema for posts collection
 const postsSchema = mongoose.Schema({
   title: String,
   post: String
 });
 
+// posts model
 const Post = mongoose.model("Post",postsSchema);
 
-const post = new Post({
-  title: "Day1",
-  post: "test"
-})
-
-// post.save();
-
-Post.find({}, (err, allItems) => {
-  posts = allItems;
-})
-
-
-
-// creating a global variable posts
-// const posts = [];
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
   
+  // finding and rendering all the posts in the database 
   Post.find({}, (err, allItems) => {
     // rendering home.ejs
     res.render("home", {
       homePara: homeStartingContent,
       posts: allItems,
-      _: _,
+      _: _
     });
   })
 });
@@ -83,22 +73,21 @@ router.get("/compose", (req, res) => {
 
 // post function for "/compose" route
 router.post("/compose", (req, res) => {
-  // creating an object called post
-  // const post = {
-  //   postTitle: req.body.title,
-  //   postBody: req.body.postB,
-  // };
-  // // pushing object to global variable
-  // posts.push(post);
 
+  // composing a new post in the database
   const post = new Post({
     title: req.body.title,
     post: req.body.postB
   });
 
-  post.save();
-  // redirecting to root route
-  res.redirect("/");
+
+
+  post.save((err) =>{
+    if (!err) {
+      // redirecting to root route
+      res.redirect("/");
+    }
+  });
 });
 
 // get function for "/post/:postName" route
