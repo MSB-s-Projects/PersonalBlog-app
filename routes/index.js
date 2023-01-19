@@ -11,7 +11,6 @@ const mongoose = require("mongoose");
 // impporting and configuring dotenv for environment variables
 require("dotenv").config();
 
-
 var router = express.Router();
 
 // creating starting content for html files
@@ -27,30 +26,30 @@ router.use(bodyParser.urlencoded({ extended: true }));
 
 // connecting to mongoDB database
 mongoose.set("strictQuery", true);
-mongoose.connect(`mongodb+srv://${process.env.mongoUsername}:${process.env.mongoPass}@cluster0.kbtc9rs.mongodb.net/personalBlogDB`);
+mongoose.connect(
+  `mongodb+srv://${process.env.mongoUsername}:${process.env.mongoPass}@cluster0.kbtc9rs.mongodb.net/personalBlogDB`
+);
 
 // Schema for posts collection
 const postsSchema = mongoose.Schema({
   title: String,
-  post: String
+  post: String,
 });
 
 // posts model
-const Post = mongoose.model("Post",postsSchema);
-
+const Post = mongoose.model("Post", postsSchema);
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
-  
-  // finding and rendering all the posts in the database 
+  // finding and rendering all the posts in the database
   Post.find({}, (err, allItems) => {
     // rendering home.ejs
     res.render("home", {
       homePara: homeStartingContent,
       posts: allItems,
-      _: _
+      _: _,
     });
-  })
+  });
 });
 
 // get function for "/about" route
@@ -73,16 +72,13 @@ router.get("/compose", (req, res) => {
 
 // post function for "/compose" route
 router.post("/compose", (req, res) => {
-
   // composing a new post in the database
   const post = new Post({
     title: req.body.title,
-    post: req.body.postB
+    post: req.body.postB,
   });
 
-
-
-  post.save((err) =>{
+  post.save((err) => {
     if (!err) {
       // redirecting to root route
       res.redirect("/");
@@ -92,11 +88,10 @@ router.post("/compose", (req, res) => {
 
 // get function for "/post/:postName" route
 router.get("/posts/:postName", (req, res) => {
-
   Post.find({}, (err, posts) => {
     // checking if the article exists
     let found = false;
-  
+
     posts.forEach((post) => {
       if (_.kebabCase(post.title) === req.params.postName) {
         found = true;
@@ -107,7 +102,7 @@ router.get("/posts/:postName", (req, res) => {
         });
       }
     });
-  
+
     // if not found render post.ejs with 404 error page
     if (!found) {
       res.render("post", {
@@ -115,7 +110,7 @@ router.get("/posts/:postName", (req, res) => {
         content: "Error! Requested post not found.",
       });
     }
-  })
+  });
 });
 
 module.exports = router;
